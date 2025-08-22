@@ -133,3 +133,5 @@ npm run pre-commit
 ---
 
 *記住：始終優先考慮程式碼品質、測試覆蓋和文檔完整性。*
+- 每個操作前都先use context7
+- 每次使用者提需求 如果沒指定agent的話 請幫我決定要trigger的agent以及執行順序

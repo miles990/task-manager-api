@@ -1,5 +1,11 @@
 {
   "mcpServers": {
+    "task-manager": {
+      "command": "node",
+      "args": ["src/mcp-server.js"],
+      "scope": "project",
+      "description": "Task Manager MCP Server - Direct task management in Claude Code"
+    },
     "database": {
       "command": "npx",
       "args": ["@modelcontextprotocol/server-sqlite", "--db-path", "./tasks.db"],

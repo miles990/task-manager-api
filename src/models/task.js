@@ -1,42 +1,40 @@
-import { z } from 'zod';
-import { v4 as uuidv4 } from 'uuid';
+/**
+ * Task Model
+ * Defines the Task class and exports schemas from centralized location
+ */
 
-export const TaskStatus = {
+const { v4: uuidv4 } = require('uuid');
+
+// Re-export schemas from centralized location
+const {
+  TaskSchema,
+  CreateTaskSchema,
+  UpdateTaskSchema,
+  TaskStatus: TaskStatusEnum,
+  TaskPriority: TaskPriorityEnum,
+  TASK_STATUS,
+  TASK_PRIORITY
+} = require('../core/schemas/taskSchemas.js');
+
+// Export constants for backward compatibility
+const TaskStatus = {
   PENDING: 'pending',
   IN_PROGRESS: 'in_progress',
   COMPLETED: 'completed',
   ARCHIVED: 'archived',
 };
 
-export const TaskPriority = {
+const TaskPriority = {
   LOW: 'low',
   MEDIUM: 'medium',
   HIGH: 'high',
   URGENT: 'urgent',
 };
 
-export const TaskSchema = z.object({
-  id: z.string().uuid(),
-  title: z.string().min(1).max(200),
-  description: z.string().max(1000).optional(),
-  status: z.enum(Object.values(TaskStatus)),
-  priority: z.enum(Object.values(TaskPriority)),
-  tags: z.array(z.string()).default([]),
-  assignee: z.string().optional(),
-  dueDate: z.string().datetime().optional(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-});
-
-export const CreateTaskSchema = TaskSchema.omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const UpdateTaskSchema = CreateTaskSchema.partial();
-
-export class Task {
+/**
+ * Task class for creating task instances
+ */
+class Task {
   constructor(data) {
     const now = new Date().toISOString();
     this.id = data.id || uuidv4();
@@ -51,6 +49,10 @@ export class Task {
     this.updatedAt = data.updatedAt || now;
   }
 
+  /**
+   * Convert task to JSON
+   * @returns {Object} Task as plain object
+   */
   toJSON() {
     return {
       id: this.id,
@@ -66,9 +68,48 @@ export class Task {
     };
   }
 
+  /**
+   * Update task properties
+   * @param {Object} updates - Properties to update
+   * @returns {Task} Updated task instance
+   */
   update(updates) {
     Object.assign(this, updates);
     this.updatedAt = new Date().toISOString();
     return this;
   }
+
+  /**
+   * Check if task is overdue
+   * @returns {boolean} True if task is overdue
+   */
+  isOverdue() {
+    if (!this.dueDate || this.status === 'completed' || this.status === 'archived') {
+      return false;
+    }
+    return new Date(this.dueDate) < new Date();
+  }
+
+  /**
+   * Calculate task age in days
+   * @returns {number} Age in days
+   */
+  getAgeInDays() {
+    const created = new Date(this.createdAt);
+    const now = new Date();
+    const diffTime = Math.abs(now - created);
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }
 }
+
+// Export everything
+module.exports = {
+  Task,
+  TaskStatus,
+  TaskPriority,
+  TaskSchema,
+  CreateTaskSchema,
+  UpdateTaskSchema,
+  TASK_STATUS,
+  TASK_PRIORITY
+};
