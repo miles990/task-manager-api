@@ -57,36 +57,107 @@
 5. 【自動】使用 api-documenter 更新文檔（如果 API 有變更）
 ```
 
-## Sub-agents 自動觸發規則
+## MCP-Agent 智能協作系統
 
-### code-reviewer (自動觸發條件)
-- ✅ 完成任何新功能實作後
-- ✅ 修改超過 50 行程式碼後
-- ✅ 修改任何安全相關程式碼（auth, validation, encryption）
-- ✅ 修改資料庫操作相關程式碼
-- ✅ 執行 npm run pre-commit 前
+### 🤖 Agent + MCP 自動化矩陣
 
-### test-generator (自動觸發條件)
-- ✅ 新增任何公開 API endpoint
-- ✅ 新增任何 public method
-- ✅ 修改現有功能的邏輯
-- ✅ 修復 bug 後（確保有回歸測試）
+| Agent | MCP 整合 | 自動觸發時機 | 協作流程 |
+|-------|----------|-------------|----------|
+| **task-manager-specialist** | `mcp__task-manager__*` | 每次開始新工作 | 創建任務 → 追蹤進度 → 更新狀態 |
+| **code-reviewer** | `mcp__task-manager__update_task` | 完成功能後 | 審查 → 記錄問題 → 更新任務 |
+| **test-generator** | `mcp__task-manager__create_task` | 新增功能時 | 生成測試 → 創建測試任務 |
+| **api-documenter** | `mcp__task-manager__update_task` | API 變更後 | 更新文檔 → 標記任務完成 |
+| **api-tester** | `mcp__task-manager__get_task_stats` | 測試完成後 | 執行測試 → 生成報告 |
 
-### api-documenter (自動觸發條件)
-- ✅ 新增或修改 API endpoint
-- ✅ 更改 request/response 格式
-- ✅ 修改錯誤碼定義
-- ✅ 新增或移除 API 參數
+### 🔄 智能工作流程
 
-### database-optimizer (自動觸發條件)
-- ✅ 新增資料表或欄位
-- ✅ 查詢效能問題（執行時間 > 100ms）
-- ✅ 準備從記憶體遷移到資料庫時
+#### 1. 新功能開發流程（全自動）
+```yaml
+觸發: 使用者要求新功能
+執行順序:
+  1. task-manager-specialist:
+     - 調用 mcp__task-manager__create_task
+     - 設定 priority 和 tags
+  2. TodoWrite:
+     - 同步創建本地任務清單
+  3. 實作功能:
+     - 編寫程式碼
+  4. test-generator:
+     - 自動生成測試
+     - 調用 mcp__task-manager__update_task (添加測試資訊)
+  5. code-reviewer:
+     - 審查程式碼
+     - 調用 mcp__task-manager__update_task (記錄審查結果)
+  6. api-documenter (if API):
+     - 更新文檔
+  7. task-manager-specialist:
+     - 調用 mcp__task-manager__update_task (status: completed)
+     - 調用 mcp__task-manager__get_task_stats (生成報告)
+```
 
-### api-tester (自動觸發條件)
-- ✅ 部署前的最終檢查
-- ✅ 完成多個 API 修改後
-- ✅ 進行負載測試需求時
+#### 2. Bug 修復流程（全自動）
+```yaml
+觸發: 發現或報告 bug
+執行順序:
+  1. task-manager-specialist:
+     - mcp__task-manager__create_task (priority: high, tag: bug)
+  2. 分析問題:
+     - grep/read 找出問題
+  3. test-generator:
+     - 先寫失敗的測試
+  4. 修復 bug:
+     - 實作修復
+  5. api-tester:
+     - 運行測試確認修復
+     - mcp__task-manager__update_task (添加測試結果)
+  6. code-reviewer:
+     - 審查修復
+  7. task-manager-specialist:
+     - mcp__task-manager__update_task (status: completed)
+```
+
+#### 3. 進度查詢流程（全自動）
+```yaml
+觸發: 使用者詢問進度
+執行順序:
+  1. task-manager-specialist:
+     - mcp__task-manager__list_tasks (status: in_progress)
+     - mcp__task-manager__get_task_stats
+  2. 生成報告:
+     - 當前進行中的任務
+     - 完成率統計
+     - 優先級分布
+```
+
+### 🎯 Agent 自動觸發規則 2.0
+
+#### task-manager-specialist（MCP 協調者）
+- ✅ **開始任何工作前** → 創建追蹤任務
+- ✅ **每完成一個步驟** → 更新任務進度
+- ✅ **遇到阻礙時** → 更新任務狀態為 blocked
+- ✅ **工作完成後** → 標記完成並生成統計
+
+#### code-reviewer + MCP
+- ✅ 完成功能 → **自動記錄審查結果到任務**
+- ✅ 發現問題 → **創建新的修復任務**
+- ✅ 通過審查 → **更新任務狀態**
+
+#### test-generator + MCP
+- ✅ 生成測試 → **創建測試覆蓋任務**
+- ✅ 測試失敗 → **更新任務優先級為 urgent**
+- ✅ 測試通過 → **記錄覆蓋率到任務**
+
+#### api-documenter + MCP
+- ✅ 更新文檔 → **標記文檔任務完成**
+- ✅ 生成 OpenAPI → **創建 API 文檔任務**
+
+#### database-optimizer + MCP
+- ✅ 優化查詢 → **記錄效能改善到任務**
+- ✅ 遷移資料 → **創建遷移追蹤任務**
+
+#### api-tester + MCP
+- ✅ 測試完成 → **更新任務測試結果**
+- ✅ 發現問題 → **創建 bug 修復任務**
 
 ## MCP 自動化整合
 
@@ -224,15 +295,46 @@ npm run pre-commit
    - 觸發 api-documenter 更新文檔
    - 觸發 api-tester 驗證 endpoint
 
-### Agent 自動決策流程
+### Agent 自動決策流程 (MCP + Agent 協作版)
 當使用者提出需求時，依照以下順序自動決定：
 
 1. **分析需求類型：**
-   - 🔧 修復類 → 【MCP】create_task(bug) → grep/read 找問題 → 修復 → 【MCP】update_task → test-generator → code-reviewer
-   - ✨ 新功能 → 【MCP】create_task(feature) → TodoWrite 規劃 → 實作 → 【MCP】update_task → test-generator → api-documenter → code-reviewer → 【MCP】complete_task
-   - ♻️ 重構類 → 【MCP】create_task(refactor) → 先跑測試 → 重構 → 測試 → code-reviewer → 【MCP】complete_task
-   - 📚 文檔類 → api-documenter
-   - 🔍 查詢類 → 使用 grep/glob 搜尋 → 【MCP】list_tasks 顯示相關任務
+   - 🔧 **修復類** 
+     ```
+     【MCP】create_task(bug) → 【Agent】task-manager-specialist(協調) 
+     → grep/read 找問題 → 修復 → 【MCP】update_task 
+     → 【Agent】test-generator → 【Agent】code-reviewer 
+     → 【MCP】complete_task
+     ```
+   
+   - ✨ **新功能** 
+     ```
+     【判斷複雜度】
+     if (複雜):
+       【MCP】specs-workflow(init) → 【Agent】general-purpose(撰寫規格)
+     【MCP】create_task(feature) → 【Agent】task-manager-specialist 
+     → TodoWrite 規劃 → 實作 → 【MCP】update_task 
+     → 【Agent】test-generator → 【Agent】api-documenter 
+     → 【Agent】code-reviewer → 【MCP】complete_task
+     ```
+   
+   - ♻️ **重構類** 
+     ```
+     【MCP】create_task(refactor) → 【Agent】database-optimizer(分析)
+     → 先跑測試 → 重構 → 測試 
+     → 【Agent】code-reviewer → 【MCP】complete_task
+     ```
+   
+   - 📚 **文檔類** 
+     ```
+     【Agent】api-documenter → 【MCP】create_task(documentation)
+     → 生成文檔 → 【MCP】complete_task
+     ```
+   
+   - 🔍 **查詢類** 
+     ```
+     grep/glob 搜尋 → 【MCP】list_tasks → 【Agent】task-manager-specialist(報告)
+     ```
 
 2. **Context7 自動使用時機：**
    - 遇到不熟悉的函式庫或框架
@@ -313,5 +415,164 @@ async function completeWork(taskId) {
     updates: { status: "completed" }
   });
   await mcp__task-manager__get_task_stats(); // 顯示統計
+}
+```
+
+## 📋 規格文件與實作計畫整合
+
+### specs-workflow MCP 自動化
+
+#### 1. 規格撰寫流程（全自動）
+```yaml
+觸發: 使用者要求新功能或計畫
+執行順序:
+  1. 初始化規格工作流:
+     - mcp__spec-workflow-mcp__specs-workflow (action: init)
+     - 設定 featureName 和 introduction
+  2. task-manager-specialist:
+     - mcp__task-manager__create_task (title: "規格: [功能名稱]")
+     - 設定 tag: ["spec", "planning"]
+  3. 執行規格撰寫:
+     - 使用 Agent 分析需求
+     - 自動生成規格文件
+  4. 檢查狀態:
+     - mcp__spec-workflow-mcp__specs-workflow (action: check)
+  5. 確認規格:
+     - mcp__spec-workflow-mcp__specs-workflow (action: confirm)
+  6. 完成任務:
+     - mcp__spec-workflow-mcp__specs-workflow (action: complete_task)
+     - mcp__task-manager__update_task (status: completed)
+```
+
+#### 2. 實作計畫流程（全自動）
+```yaml
+觸發: 規格確認後
+執行順序:
+  1. 解析規格任務:
+     - 從規格文件提取任務清單
+  2. 批次創建任務:
+     - 對每個實作項目:
+       - mcp__task-manager__create_task
+       - 設定依賴關係和優先級
+  3. 生成實作計畫:
+     - 使用 task-manager-specialist 協調
+     - 建立時程表和里程碑
+  4. 追蹤進度:
+     - 定期調用 mcp__task-manager__get_task_stats
+     - 自動更新規格工作流狀態
+```
+
+### 🎯 智能決策規則 3.0
+
+#### 需求分析階段
+```javascript
+if (需求複雜度 > 簡單) {
+  // 1. 先寫規格
+  await mcp__spec-workflow-mcp__specs-workflow({
+    action: "init",
+    path: "/specs/[feature-name]",
+    featureName: "[功能名稱]",
+    introduction: "[功能簡介]"
+  });
+  
+  // 2. 創建規格任務
+  await mcp__task-manager__create_task({
+    title: "撰寫規格: [功能名稱]",
+    priority: "high",
+    tags: ["spec", "planning"]
+  });
+  
+  // 3. 觸發 Agent 協作
+  await Task({
+    subagent_type: "general-purpose",
+    description: "分析需求並撰寫規格",
+    prompt: "根據需求撰寫詳細規格..."
+  });
+}
+```
+
+#### 實作階段
+```javascript
+// 從規格自動生成任務
+const specs = await mcp__spec-workflow-mcp__specs-workflow({
+  action: "check",
+  path: "/specs/[feature-name]"
+});
+
+// 解析並創建實作任務
+for (const task of specs.tasks) {
+  await mcp__task-manager__create_task({
+    title: task.name,
+    description: task.description,
+    priority: task.priority || "medium",
+    tags: ["implementation", specs.featureName]
+  });
+}
+
+// 並行觸發多個 Agent
+await Promise.all([
+  Task({ subagent_type: "test-generator", ... }),
+  Task({ subagent_type: "api-documenter", ... }),
+  Task({ subagent_type: "code-quality-guardian", ... })
+]);
+```
+
+### 🔄 完整自動化範例
+
+#### 範例：實作使用者認證系統
+```yaml
+自動執行流程:
+  1. 規格階段:
+     - mcp__spec-workflow-mcp__specs-workflow (init: "user-auth")
+     - mcp__task-manager__create_task (規格任務)
+     - Agent: general-purpose (撰寫規格)
+     
+  2. 計畫階段:
+     - 解析規格生成任務清單
+     - 批次創建實作任務 (登入、註冊、JWT、權限)
+     - 設定任務依賴和優先級
+     
+  3. 實作階段:
+     - task-manager-specialist: 協調任務執行
+     - test-generator: 為每個功能生成測試
+     - api-documenter: 同步更新 API 文檔
+     - code-reviewer: 即時審查程式碼
+     
+  4. 完成階段:
+     - mcp__spec-workflow-mcp__specs-workflow (complete_task)
+     - mcp__task-manager__get_task_stats (生成報告)
+     - api-tester: 執行完整測試套件
+```
+
+### 📊 自動化監控面板
+
+```javascript
+// 即時監控所有進行中的工作
+async function autoMonitor() {
+  // 1. 檢查規格工作流狀態
+  const specStatus = await mcp__spec-workflow-mcp__specs-workflow({
+    action: "check"
+  });
+  
+  // 2. 獲取任務統計
+  const taskStats = await mcp__task-manager__get_task_stats();
+  
+  // 3. 生成綜合報告
+  console.log(`
+    📋 規格進度: ${specStatus.progress}
+    ✅ 完成任務: ${taskStats.completed}
+    🔄 進行中: ${taskStats.in_progress}
+    📌 待處理: ${taskStats.pending}
+    🎯 完成率: ${taskStats.completion_rate}%
+  `);
+  
+  // 4. 智能決策下一步
+  if (taskStats.blocked > 0) {
+    // 自動觸發 problem-solver agent
+    await Task({
+      subagent_type: "general-purpose",
+      description: "解決阻塞問題"
+    });
+  }
 }
 ```
