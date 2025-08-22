@@ -2,6 +2,7 @@
   "name": "task-manager-api",
   "version": "1.0.0",
   "description": "Claude Code 最佳實踐範例專案 - 任務管理 API",
+  "type": "commonjs",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",

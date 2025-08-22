@@ -75,5 +75,9 @@ class DatabaseConnection {
   }
 }
 
-// Export singleton instance
-module.exports = new DatabaseConnection();
+// Create singleton instance
+const connection = new DatabaseConnection();
+
+// Export both the instance and a helper function
+module.exports = connection;
+module.exports.getDatabase = () => connection.getInstance();

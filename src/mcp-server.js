@@ -5,14 +5,14 @@
  * Provides Model Context Protocol interface for task management
  */
 
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { 
+const { Server } = require('@modelcontextprotocol/sdk/server/index.js');
+const { StdioServerTransport } = require('@modelcontextprotocol/sdk/server/stdio.js');
+const { 
   ListToolsRequestSchema,
   CallToolRequestSchema 
-} from '@modelcontextprotocol/sdk/types.js';
-import { taskService } from './services/taskService.js';
-import { z } from 'zod';
+} = require('@modelcontextprotocol/sdk/types.js');
+const taskService = require('./services/taskService.js');
+const { z } = require('zod');
 
 // Create MCP server instance
 const server = new Server(
@@ -220,7 +220,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     switch (name) {
       case 'create_task': {
         const validated = CreateTaskSchema.parse(args);
-        const task = taskService.createTask(validated);
+        const task = await taskService.createTask(validated);
         
         return {
           content: [
@@ -234,7 +234,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case 'list_tasks': {
         const validated = ListTasksSchema.parse(args || {});
-        const tasks = taskService.getAllTasks(validated);
+        const tasks = await taskService.getAllTasks(validated);
         
         if (tasks.length === 0) {
           return {
@@ -263,7 +263,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case 'get_task': {
         const validated = GetTaskSchema.parse(args);
-        const task = taskService.getTask(validated.id);
+        const task = await taskService.getTask(validated.id);
         
         if (!task) {
           throw new Error(`Task with ID ${validated.id} not found`);
@@ -293,7 +293,7 @@ Updated: ${task.updatedAt}`;
 
       case 'update_task': {
         const validated = UpdateTaskSchema.parse(args);
-        const task = taskService.updateTask(validated.id, validated.updates);
+        const task = await taskService.updateTask(validated.id, validated.updates);
         
         if (!task) {
           throw new Error(`Task with ID ${validated.id} not found`);
@@ -315,12 +315,8 @@ Updated: ${task.updatedAt}`;
 
       case 'delete_task': {
         const validated = DeleteTaskSchema.parse(args);
-        const success = taskService.deleteTask(validated.id);
+        await taskService.deleteTask(validated.id);
         
-        if (!success) {
-          throw new Error(`Task with ID ${validated.id} not found`);
-        }
-
         return {
           content: [
             {
@@ -332,22 +328,7 @@ Updated: ${task.updatedAt}`;
       }
 
       case 'get_task_stats': {
-        const tasks = taskService.getAllTasks({});
-        const stats = {
-          total: tasks.length,
-          byStatus: {
-            pending: tasks.filter(t => t.status === 'pending').length,
-            'in_progress': tasks.filter(t => t.status === 'in_progress').length,
-            completed: tasks.filter(t => t.status === 'completed').length,
-            archived: tasks.filter(t => t.status === 'archived').length,
-          },
-          byPriority: {
-            urgent: tasks.filter(t => t.priority === 'urgent').length,
-            high: tasks.filter(t => t.priority === 'high').length,
-            medium: tasks.filter(t => t.priority === 'medium').length,
-            low: tasks.filter(t => t.priority === 'low').length,
-          },
-        };
+        const stats = await taskService.getStatistics();
 
         const statsText = `📊 Task Statistics:
 
@@ -365,6 +346,7 @@ By Priority:
   • Medium: ${stats.byPriority.medium}
   • Low: ${stats.byPriority.low}
 
+Overdue Tasks: ${stats.overdue}
 Completion Rate: ${stats.total > 0 ? ((stats.byStatus.completed / stats.total) * 100).toFixed(1) : 0}%`;
 
         return {
@@ -427,11 +409,11 @@ process.on('SIGTERM', async () => {
 });
 
 // Start server if run directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (require.main === module) {
   startMCPServer().catch((error) => {
     console.error('Failed to start MCP server:', error);
     process.exit(1);
   });
 }
 
-export { server, startMCPServer };
+module.exports = { server, startMCPServer };

@@ -10,8 +10,6 @@ const {
   TaskSchema,
   CreateTaskSchema,
   UpdateTaskSchema,
-  TaskStatus: TaskStatusEnum,
-  TaskPriority: TaskPriorityEnum,
   TASK_STATUS,
   TASK_PRIORITY
 } = require('../core/schemas/taskSchemas.js');

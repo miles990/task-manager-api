@@ -11,8 +11,7 @@ const AppError = require('../core/errors/AppError');
  * @param {string} source - Data source ('body', 'query', 'params')
  * @returns {Function} Express middleware
  */
-const validateRequest = (schema, source = 'body') => {
-  return (req, res, next) => {
+const validateRequest = (schema, source = 'body') => (req, res, next) => {
     try {
       const data = req[source];
       const validated = schema.parse(data);
@@ -34,15 +33,13 @@ const validateRequest = (schema, source = 'body') => {
       next(error);
     }
   };
-};
 
 /**
  * Validate UUID parameter
  * @param {string} paramName - Parameter name
  * @returns {Function} Express middleware
  */
-const validateUUID = (paramName = 'id') => {
-  return (req, res, next) => {
+const validateUUID = (paramName = 'id') => (req, res, next) => {
     const uuid = req.params[paramName];
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     
@@ -56,15 +53,13 @@ const validateUUID = (paramName = 'id') => {
     
     next();
   };
-};
 
 /**
  * Sanitize request data
  * Removes dangerous characters and HTML tags
  * @returns {Function} Express middleware
  */
-const sanitizeRequest = () => {
-  return (req, res, next) => {
+const sanitizeRequest = () => (req, res, next) => {
     const sanitize = (obj) => {
       if (typeof obj === 'string') {
         // Remove HTML tags and dangerous characters
@@ -91,7 +86,6 @@ const sanitizeRequest = () => {
     
     next();
   };
-};
 
 module.exports = {
   validateRequest,

@@ -14,7 +14,7 @@ const config = require('../config');
  * @param {Object} res - Express response
  * @param {Function} next - Next middleware
  */
-const errorHandler = (err, req, res, next) => {
+const errorHandler = (err, req, res, _next) => {
   // Log error for debugging
   if (config.isDevelopment) {
     console.error('Error Details:', {
@@ -119,10 +119,8 @@ const errorHandler = (err, req, res, next) => {
  * @param {Function} fn - Async function
  * @returns {Function} Express middleware
  */
-const asyncHandler = (fn) => {
-  return (req, res, next) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
-  };
+const asyncHandler = (fn) => (req, res, next) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
 };
 
 /**
