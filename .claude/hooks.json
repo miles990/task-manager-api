@@ -1,0 +1,25 @@
+{
+  "hooks": [
+    {
+      "event": "PreToolUse",
+      "matcher": {
+        "tool": "Bash",
+        "params": {
+          "command": "git commit"
+        }
+      },
+      "command": "bash hooks/pre-commit.sh"
+    },
+    {
+      "event": "PostToolUse",
+      "matcher": {
+        "tool": ["Edit", "Write", "Bash"]
+      },
+      "command": "bash hooks/post-tool-use.sh {{tool}} '{{params}}'"
+    },
+    {
+      "event": "UserPromptSubmit",
+      "command": "echo '🤖 Processing request: {{prompt}}' | head -c 100"
+    }
+  ]
+}

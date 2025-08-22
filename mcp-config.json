@@ -1,0 +1,33 @@
+{
+  "mcpServers": {
+    "database": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-sqlite", "--db-path", "./tasks.db"],
+      "scope": "project",
+      "description": "SQLite database for persistent task storage"
+    },
+    "github": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+      },
+      "scope": "user",
+      "description": "GitHub integration for issue tracking"
+    },
+    "slack": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-slack"],
+      "env": {
+        "SLACK_TOKEN": "${SLACK_TOKEN}"
+      },
+      "scope": "project",
+      "description": "Slack notifications for task updates"
+    }
+  },
+  "usage": {
+    "database": "claude mcp add database -s project -- npx @modelcontextprotocol/server-sqlite --db-path ./tasks.db",
+    "github": "claude mcp add github -s user --env GITHUB_TOKEN=$GITHUB_TOKEN -- npx @modelcontextprotocol/server-github",
+    "slack": "claude mcp add slack -s project --env SLACK_TOKEN=$SLACK_TOKEN -- npx @modelcontextprotocol/server-slack"
+  }
+}
