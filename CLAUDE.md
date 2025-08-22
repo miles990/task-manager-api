@@ -88,14 +88,71 @@
 - ✅ 完成多個 API 修改後
 - ✅ 進行負載測試需求時
 
-## MCP 整合點
+## MCP 自動化整合
 
-當實作以下功能時，考慮使用 MCP 整合：
+### Task Manager MCP 自動使用場景
 
-1. **持久化儲存** - 使用 SQLite MCP
-2. **問題追蹤** - 使用 GitHub MCP
-3. **通知系統** - 使用 Slack MCP
-4. **外部 API** - 使用適當的 MCP 服務器
+#### 1. 專案任務追蹤（自動觸發）
+當執行以下操作時，自動使用 task-manager MCP：
+
+- **新功能開發時：**
+  ```
+  自動創建任務：mcp__task-manager__create_task
+  - title: "實作 [功能名稱]"
+  - priority: 根據需求判斷 (urgent/high/medium/low)
+  - status: "in_progress"
+  - tags: ["feature", "development"]
+  ```
+
+- **修復 Bug 時：**
+  ```
+  自動創建任務：mcp__task-manager__create_task
+  - title: "修復: [錯誤描述]"
+  - priority: "high"
+  - status: "in_progress"
+  - tags: ["bug", "fix"]
+  ```
+
+- **完成功能後：**
+  ```
+  自動更新任務：mcp__task-manager__update_task
+  - status: "completed"
+  - 添加完成時間和測試結果
+  ```
+
+#### 2. 進度報告（自動生成）
+- 每次使用者詢問進度時，自動調用 `mcp__task-manager__get_task_stats`
+- 完成重要里程碑時，自動生成進度報告
+- 使用 `mcp__task-manager__list_tasks` 顯示當前進行中的任務
+
+#### 3. 任務管理整合流程
+```javascript
+// 自動化流程範例
+1. 使用者提出需求
+2. 【自動】創建對應任務 (create_task)
+3. 【自動】更新 TodoWrite 同步任務狀態
+4. 執行開發工作
+5. 【自動】更新任務進度 (update_task)
+6. 完成後【自動】標記完成 (update_task: status=completed)
+7. 【自動】生成進度報告 (get_task_stats)
+```
+
+### 其他 MCP 服務器自動化
+
+#### SQLite MCP（資料持久化）
+- **自動觸發：** 當任務數量 > 100 時，建議遷移到 SQLite
+- **自動執行：** 定期備份任務資料到資料庫
+- **查詢優化：** 自動建立索引和優化查詢
+
+#### GitHub MCP（問題追蹤）
+- **自動觸發：** 發現需要長期追蹤的 bug
+- **自動創建：** 將高優先級任務同步為 GitHub Issue
+- **自動更新：** PR 合併後自動關閉相關 Issue
+
+#### Slack MCP（團隊通知）
+- **自動觸發：** 完成重要功能或修復關鍵 bug
+- **自動通知：** 每日進度總結
+- **警報通知：** 測試失敗或建構錯誤時
 
 ## 自動化 Hooks
 
@@ -171,11 +228,11 @@ npm run pre-commit
 當使用者提出需求時，依照以下順序自動決定：
 
 1. **分析需求類型：**
-   - 🔧 修復類 → 先 grep/read 找問題 → 修復 → test-generator → code-reviewer
-   - ✨ 新功能 → TodoWrite 規劃 → 實作 → test-generator → api-documenter → code-reviewer
-   - ♻️ 重構類 → 先跑測試 → 重構 → 測試 → code-reviewer
+   - 🔧 修復類 → 【MCP】create_task(bug) → grep/read 找問題 → 修復 → 【MCP】update_task → test-generator → code-reviewer
+   - ✨ 新功能 → 【MCP】create_task(feature) → TodoWrite 規劃 → 實作 → 【MCP】update_task → test-generator → api-documenter → code-reviewer → 【MCP】complete_task
+   - ♻️ 重構類 → 【MCP】create_task(refactor) → 先跑測試 → 重構 → 測試 → code-reviewer → 【MCP】complete_task
    - 📚 文檔類 → api-documenter
-   - 🔍 查詢類 → 使用 grep/glob 搜尋
+   - 🔍 查詢類 → 使用 grep/glob 搜尋 → 【MCP】list_tasks 顯示相關任務
 
 2. **Context7 自動使用時機：**
    - 遇到不熟悉的函式庫或框架
@@ -202,3 +259,59 @@ npm run pre-commit
 - 平行處理提升效率
 - 失敗立即修復，不累積技術債
 - 每個操作都要有對應的測試和文檔
+
+## MCP Task Manager 快速指令
+
+### 立即可用的 MCP 指令（無需設定）
+```bash
+# 創建任務
+mcp__task-manager__create_task(title="任務名稱", priority="high", tags=["feature"])
+
+# 列出所有任務
+mcp__task-manager__list_tasks()
+
+# 查看特定任務
+mcp__task-manager__get_task(id="task-uuid")
+
+# 更新任務狀態
+mcp__task-manager__update_task(id="task-uuid", updates={status: "completed"})
+
+# 刪除任務
+mcp__task-manager__delete_task(id="task-uuid")
+
+# 查看統計資料
+mcp__task-manager__get_task_stats()
+```
+
+### 自動化範例腳本
+```javascript
+// 每次開始工作時自動執行
+async function startWork(featureName) {
+  // 1. 創建任務
+  const task = await mcp__task-manager__create_task({
+    title: featureName,
+    status: "in_progress",
+    priority: "medium"
+  });
+  
+  // 2. 同步到 TodoWrite
+  await TodoWrite([
+    { content: featureName, status: "in_progress" }
+  ]);
+  
+  // 3. 定期更新進度
+  setInterval(() => {
+    mcp__task-manager__update_task(task.id, {
+      updates: { description: "進度更新..." }
+    });
+  }, 30 * 60 * 1000); // 每 30 分鐘
+}
+
+// 完成工作時
+async function completeWork(taskId) {
+  await mcp__task-manager__update_task(taskId, {
+    updates: { status: "completed" }
+  });
+  await mcp__task-manager__get_task_stats(); // 顯示統計
+}
+```
