@@ -69,31 +69,54 @@
 | **api-documenter** | `mcp__task-manager__update_task` | API 變更後 | 更新文檔 → 標記任務完成 |
 | **api-tester** | `mcp__task-manager__get_task_stats` | 測試完成後 | 執行測試 → 生成報告 |
 
-### 🔄 智能工作流程
+### 🔄 智能工作流程 2.0（強化版）
 
-#### 1. 新功能開發流程（全自動）
+#### 1. 新功能開發流程（全自動 + 智能判斷）
 ```yaml
-觸發: 使用者要求新功能
+觸發: 使用者要求新功能 或 /new 命令
+智能判斷:
+  - 分析功能複雜度（簡單/中等/複雜）
+  - 判斷是否需要規格文件
+  - 評估所需 Agent 組合
+  
 執行順序:
-  1. task-manager-specialist:
-     - 調用 mcp__task-manager__create_task
-     - 設定 priority 和 tags
-  2. TodoWrite:
-     - 同步創建本地任務清單
-  3. 實作功能:
-     - 編寫程式碼
-  4. test-generator:
-     - 自動生成測試
-     - 調用 mcp__task-manager__update_task (添加測試資訊)
-  5. code-reviewer:
-     - 審查程式碼
-     - 調用 mcp__task-manager__update_task (記錄審查結果)
-  6. api-documenter (if API):
-     - 更新文檔
-  7. task-manager-specialist:
-     - 調用 mcp__task-manager__update_task (status: completed)
-     - 調用 mcp__task-manager__get_task_stats (生成報告)
-```
+  1. 【智能分析】:
+     if (複雜功能):
+       - mcp__spec-workflow-mcp__specs-workflow(init)
+       - Task(general-purpose): 撰寫規格
+     
+  2. 【MCP 任務創建】:
+     - mcp__task-manager__create_task
+     - 根據複雜度設定 priority (urgent/high/medium)
+     - 自動添加相關 tags
+     
+  3. 【TodoWrite 同步】:
+     - 分解成子任務
+     - 設定依賴關係
+     
+  4. 【並行開發】: # 同時執行提升效率
+     parallel:
+       - 實作功能程式碼
+       - Task(test-generator): 預先生成測試框架
+       - Task(api-documenter): 準備文檔模板
+     
+  5. 【自動測試】:
+     - Hook: post-edit 自動運行相關測試
+     - 如果失敗: 自動修復或標記問題
+     
+  6. 【智能審查】:
+     - Task(code-reviewer): 全面審查
+     - 如果發現問題: 創建修復子任務
+     
+  7. 【完成驗證】:
+     - 運行完整測試套件
+     - 檢查覆蓋率 > 80%
+     - mcp__task-manager__update_task(completed)
+     
+  8. 【自動報告】:
+     - mcp__task-manager__get_task_stats
+     - 生成 changelog
+     - 更新 README 進度
 
 #### 2. Bug 修復流程（全自動）
 ```yaml
@@ -225,14 +248,119 @@
 - **自動通知：** 每日進度總結
 - **警報通知：** 測試失敗或建構錯誤時
 
-## 自動化 Hooks
+## 🪝 自動化 Hooks 配置
 
-已配置的 hooks 會自動：
-- 格式化程式碼（post-tool-use）
-- 運行測試（pre-commit）
-- 執行安全審計（npm install 後）
+### Pre-hooks（執行前自動觸發）
+```yaml
+pre-edit:
+  - 備份原始檔案
+  - 檢查檔案權限
+  
+pre-commit:
+  - npm run lint
+  - npm test
+  - npm run typecheck
+  - 如果失敗，自動修復並重試
+  
+pre-push:
+  - npm run build
+  - npm run test:e2e
+  - 檢查測試覆蓋率 > 80%
+```
 
-## 常用命令
+### Post-hooks（執行後自動觸發）
+```yaml
+post-edit:
+  *.js, *.ts: npm run format
+  *.md: 更新目錄結構
+  *.json: 驗證 JSON 格式
+  
+post-tool-use:
+  - 如果修改了 src/: npm run lint --fix
+  - 如果修改了 tests/: npm test
+  - 如果修改了 docs/: 觸發 api-documenter
+  
+post-task-complete:
+  - mcp__task-manager__get_task_stats
+  - 生成進度報告
+  - 更新 README 狀態徽章
+```
+
+### 智能 Hook 規則
+```javascript
+// 檔案變更觸發
+on_file_change: {
+  "*.service.js": ["運行單元測試", "更新依賴注入"],
+  "*.controller.js": ["更新 API 文檔", "運行整合測試"],
+  "*.model.js": ["更新資料庫 schema", "運行遷移測試"],
+  "package.json": ["npm install", "檢查安全漏洞"]
+}
+
+// 錯誤自動修復
+on_error: {
+  "ESLint error": "npm run lint --fix",
+  "Test failed": "觸發 test-generator 修復測試",
+  "Type error": "觸發 code-reviewer 檢查型別",
+  "Build failed": "清理並重新建構"
+}
+
+## 💻 Claude Code Commands（快捷指令）
+
+### 內建 Commands
+```bash
+/help           # 顯示幫助
+/clear          # 清除對話
+/status         # 專案狀態總覽
+/tasks          # 列出所有任務
+/progress       # 顯示進度報告
+/test           # 執行測試套件
+/lint           # 執行程式碼檢查
+/build          # 建構專案
+/commit [msg]   # 智能提交（自動生成訊息）
+/deploy         # 部署到環境
+```
+
+### 專案特定 Commands
+```bash
+# 快速操作
+/new [feature]  # 開始新功能開發（自動創建任務+規格）
+/fix [bug]      # 開始修復 bug（創建高優先級任務）
+/refactor       # 開始重構（先跑測試確保安全）
+/review         # 觸發完整程式碼審查
+/docs           # 更新所有文檔
+
+# MCP 整合
+/task create    # 創建新任務
+/task list      # 列出任務
+/task complete  # 完成當前任務
+/stats          # 顯示任務統計
+
+# Agent 觸發
+/test-gen       # 觸發 test-generator
+/review-code    # 觸發 code-reviewer
+/optimize-db    # 觸發 database-optimizer
+/update-api     # 觸發 api-documenter
+
+# 批次操作
+/check-all      # 執行所有檢查（lint + test + build）
+/fix-all        # 修復所有問題（lint --fix + 格式化）
+/update-all     # 更新所有（依賴 + 文檔 + 測試）
+```
+
+### Command 別名設定
+```javascript
+// 自訂快捷指令
+aliases: {
+  "/t": "/test",
+  "/l": "/lint",
+  "/b": "/build",
+  "/c": "/commit",
+  "/n": "/new",
+  "/f": "/fix"
+}
+```
+
+## 常用 npm 命令
 
 ```bash
 # 開發
@@ -240,15 +368,22 @@ npm run dev
 
 # 測試
 npm test
+npm run test:watch
+npm run test:coverage
 
 # 程式碼品質
 npm run lint
+npm run lint:fix
 npm run format
 npm run typecheck
 
+# 建構
+npm run build
+npm run build:prod
+
 # 綜合檢查
 npm run pre-commit
-```
+npm run validate
 
 ## 性能考量
 
@@ -354,13 +489,162 @@ npm run pre-commit
 
 ---
 
+## 🧠 智能自動化規則
+
+### 自動判斷與執行
+```javascript
+// 智能需求分析
+function analyzeRequest(userInput) {
+  // 關鍵字匹配
+  const patterns = {
+    feature: /新增|功能|實作|開發|create|add|implement/i,
+    bug: /錯誤|修復|bug|fix|issue|問題/i,
+    refactor: /重構|優化|改善|refactor|optimize/i,
+    docs: /文檔|文件|說明|document|readme/i,
+    test: /測試|test|spec/i,
+    deploy: /部署|發布|release|deploy/i
+  };
+  
+  // 複雜度評估
+  const complexity = {
+    simple: userInput.length < 50,
+    medium: userInput.length < 150,
+    complex: userInput.length >= 150 || userInput.includes('系統')
+  };
+  
+  return { type, complexity, autoActions };
+}
+
+// 自動執行決策
+autoExecute: {
+  "新功能": [
+    "mcp__task-manager__create_task",
+    "if(complex) => specs-workflow",
+    "TodoWrite 分解任務",
+    "parallel(test-generator, api-documenter)",
+    "code-reviewer after complete"
+  ],
+  "Bug修復": [
+    "mcp__task-manager__create_task(priority: urgent)",
+    "寫失敗測試",
+    "修復",
+    "驗證所有測試",
+    "code-reviewer"
+  ],
+  "效能問題": [
+    "database-optimizer 分析",
+    "執行基準測試",
+    "優化",
+    "對比測試結果"
+  ]
+}
+```
+
+### 智能 Agent 組合
+```yaml
+場景判斷:
+  API開發:
+    agents: [api-documenter, test-generator, api-tester]
+    hooks: [post-route-add, pre-deploy]
+    
+  資料庫變更:
+    agents: [database-optimizer, test-generator]
+    hooks: [pre-migration, post-schema-change]
+    
+  前端整合:
+    agents: [api-documenter, code-reviewer]
+    hooks: [post-api-change, update-sdk]
+    
+  安全修復:
+    agents: [code-quality-guardian, code-reviewer]
+    priority: urgent
+    hooks: [security-scan, penetration-test]
+```
+
+### 自動化觸發條件
+```javascript
+// 檔案模式觸發
+triggers: {
+  "CREATE src/**/*.service.js": {
+    actions: [
+      "創建對應的 .spec.js 測試檔",
+      "Task(test-generator): 生成測試",
+      "更新依賴注入容器"
+    ]
+  },
+  "MODIFY src/routes/*.js": {
+    actions: [
+      "Task(api-documenter): 更新 OpenAPI",
+      "Task(api-tester): 驗證端點",
+      "更新 Postman collection"
+    ]
+  },
+  "DELETE src/**/*": {
+    actions: [
+      "檢查依賴關係",
+      "更新 import 語句",
+      "運行測試確保無破壞"
+    ]
+  }
+}
+
+// 錯誤模式觸發
+errorPatterns: {
+  "Cannot find module": {
+    action: "npm install && npm run build"
+  },
+  "Test failed": {
+    action: "分析失敗原因 -> 自動修復 -> 重新測試"
+  },
+  "Lint error": {
+    action: "npm run lint:fix -> 如果仍失敗則觸發 code-reviewer"
+  },
+  "Type error": {
+    action: "npm run typecheck -> 修復型別定義"
+  }
+}
+```
+
+### 進階自動化流程
+```javascript
+// 每日自動化例程
+dailyRoutine: async () => {
+  // 早上 9:00
+  await mcp__task-manager__get_task_stats();
+  await checkDependencyUpdates();
+  
+  // 每 2 小時
+  await runTestSuite();
+  await checkCodeCoverage();
+  
+  // 下班前
+  await generateDailyReport();
+  await backupImportantData();
+}
+
+// 智能決策樹
+decisionTree: {
+  if: "使用者說'部署'",
+  then: [
+    "檢查所有測試",
+    "檢查覆蓋率 > 80%",
+    "建構生產版本",
+    "運行 E2E 測試",
+    "if(success) => 執行部署",
+    "else => 標記問題並通知"
+  ]
+}
+```
+
 *記住：始終優先考慮程式碼品質、測試覆蓋和文檔完整性。*
 
 **核心原則：**
-- 主動執行檢查，不等使用者要求
-- 平行處理提升效率
-- 失敗立即修復，不累積技術債
-- 每個操作都要有對應的測試和文檔
+- 🤖 主動執行檢查，不等使用者要求
+- ⚡ 平行處理提升效率
+- 🔧 失敗立即修復，不累積技術債
+- ✅ 每個操作都要有對應的測試和文檔
+- 🧠 智能判斷需求，自動選擇最佳流程
+- 🔄 持續優化，從錯誤中學習
 
 ## MCP Task Manager 快速指令
 

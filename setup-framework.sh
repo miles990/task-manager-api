@@ -275,6 +275,26 @@ EOF
             format_command="black ."
             build_command="python setup.py build"
             ;;
+        "go")
+            tech_stack="- 語言: Go\n- 執行環境: Go 1.19+\n- 套件管理: go mod\n- 框架: Gin/Echo/Fiber (如適用)"
+            code_style="- 遵循 Effective Go 指南\n- 使用 gofmt 和 goimports\n- 錯誤優先返回模式\n- 介面導向設計"
+            test_commands="- 測試框架: testing package + testify\n- 覆蓋率: go test -cover\n- 基準測試: go test -bench"
+            lint_command="golangci-lint run"
+            test_command="go test -v ./..."
+            dev_command="go run main.go"
+            format_command="gofmt -w . && goimports -w ."
+            build_command="go build -o bin/app"
+            ;;
+        "rust")
+            tech_stack="- 語言: Rust\n- 執行環境: Rust 1.70+\n- 套件管理: Cargo"
+            code_style="- 遵循 Rust Style Guide\n- 使用 rustfmt\n- 使用 clippy 檢查"
+            test_commands="- 測試框架: Rust testing\n- 文檔測試: cargo test --doc"
+            lint_command="cargo clippy"
+            test_command="cargo test"
+            dev_command="cargo run"
+            format_command="cargo fmt"
+            build_command="cargo build --release"
+            ;;
         *)
             tech_stack="- 語言: [請填寫]\n- 框架: [請填寫]\n- 資料庫: [請填寫]"
             code_style="- [請填寫程式碼規範]"

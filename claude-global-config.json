@@ -1,0 +1,114 @@
+{
+  "version": "1.0.0",
+  "description": "Claude Code 全域配置",
+  "config_dir": "~/.claude",
+  "projects_file": "~/.claude/projects.json",
+  "current_project_file": "~/.claude/current_project",
+  "templates_dir": "~/.claude/templates",
+  "hooks_dir": "~/.claude/hooks",
+  "global_settings": {
+    "auto_init": true,
+    "default_language": "auto-detect",
+    "mcp_enabled": true,
+    "agents_enabled": true,
+    "hooks_enabled": true,
+    "commands_enabled": true
+  },
+  "default_commands": {
+    "/project": "顯示當前專案資訊",
+    "/switch": "切換專案",
+    "/init": "初始化專案框架",
+    "/tasks": "列出所有任務",
+    "/stats": "顯示專案統計"
+  },
+  "project_templates": {
+    "node": {
+      "test_command": "npm test",
+      "lint_command": "npm run lint",
+      "dev_command": "npm run dev",
+      "build_command": "npm run build",
+      "format_command": "npm run format"
+    },
+    "go": {
+      "test_command": "go test -v ./...",
+      "lint_command": "golangci-lint run",
+      "dev_command": "go run main.go",
+      "build_command": "go build -o bin/app",
+      "format_command": "gofmt -w . && goimports -w ."
+    },
+    "python": {
+      "test_command": "pytest",
+      "lint_command": "flake8 .",
+      "dev_command": "python main.py",
+      "build_command": "python setup.py build",
+      "format_command": "black ."
+    },
+    "rust": {
+      "test_command": "cargo test",
+      "lint_command": "cargo clippy",
+      "dev_command": "cargo run",
+      "build_command": "cargo build --release",
+      "format_command": "cargo fmt"
+    },
+    "java": {
+      "test_command": "mvn test",
+      "lint_command": "mvn checkstyle:check",
+      "dev_command": "mvn spring-boot:run",
+      "build_command": "mvn clean package",
+      "format_command": "mvn formatter:format"
+    }
+  },
+  "mcp_servers": {
+    "task-manager": {
+      "description": "任務管理 MCP",
+      "auto_start": true
+    },
+    "spec-workflow": {
+      "description": "規格工作流 MCP",
+      "auto_start": false
+    },
+    "database": {
+      "description": "資料庫 MCP",
+      "auto_start": false
+    }
+  },
+  "agents": {
+    "test-generator": {
+      "description": "測試生成器",
+      "auto_trigger": ["new_function", "bug_fix"]
+    },
+    "code-reviewer": {
+      "description": "程式碼審查",
+      "auto_trigger": ["feature_complete", "pre_commit"]
+    },
+    "api-documenter": {
+      "description": "API 文檔",
+      "auto_trigger": ["api_change", "route_added"]
+    },
+    "database-optimizer": {
+      "description": "資料庫優化",
+      "auto_trigger": ["slow_query", "migration"]
+    }
+  },
+  "global_hooks": {
+    "pre-commit": [
+      "run_tests",
+      "run_lint",
+      "check_coverage"
+    ],
+    "post-edit": [
+      "format_code"
+    ],
+    "post-task-complete": [
+      "update_stats",
+      "generate_report"
+    ]
+  },
+  "aliases": {
+    "cpm": "claude-project-manager",
+    "cc": "claude",
+    "ccinit": "claude-project-manager init",
+    "ccswitch": "claude-project-manager switch",
+    "cclist": "claude-project-manager list"
+  }
+}
