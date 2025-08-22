@@ -42,8 +42,3 @@ tmp/
 # MCP
 .mcp.json
 
-# Claude
-.claude/agents/
-.claude/api-tester.json
-.claude/database-manager.json
-.claude/task-manager-assistant.json
