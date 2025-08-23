@@ -1,0 +1,271 @@
+{
+  "framework": {
+    "name": "Universal Project Manager",
+    "version": "2.0.0",
+    "description": "通用專案管理框架 - 基於 Claude Code 最佳實踐",
+    "type": "universal-framework"
+  },
+  "defaultProject": "task-manager-api",
+  "projects": {
+    "task-manager-api": {
+      "name": "Task Manager API",
+      "type": "node-api",
+      "description": "任務管理 API 示範專案",
+      "rootPath": "/Users/user/Workspace/task-manager-api",
+      "config": {
+        "database": {
+          "type": "sqlite",
+          "path": "./data/tasks.db"
+        },
+        "api": {
+          "port": 3000,
+          "basePath": "/api",
+          "version": "1.0.0"
+        },
+        "mcp": {
+          "enabled": true,
+          "serverName": "task-manager",
+          "tools": [
+            "create_task",
+            "list_tasks",
+            "get_task",
+            "update_task",
+            "delete_task",
+            "get_task_stats"
+          ]
+        }
+      },
+      "features": {
+        "taskManagement": true,
+        "apiServer": true,
+        "database": true,
+        "mcp": true,
+        "testing": true,
+        "linting": true
+      },
+      "scripts": {
+        "start": "node src/index.js",
+        "start:mcp": "node src/mcp-server.js",
+        "test": "node --test tests/",
+        "lint": "eslint src/ tests/",
+        "setup": "node scripts/setup-project.js"
+      }
+    },
+    "demo-api": {
+      "name": "demo-api",
+      "type": "node-api",
+      "description": "Node.js API 專案 專案",
+      "rootPath": "/tmp/test-projects/demo-api",
+      "config": {
+        "api": {
+          "port": 3000,
+          "basePath": "/api",
+          "version": "1.0.0"
+        },
+        "database": {
+          "type": "sqlite",
+          "path": "./data/tasks.db"
+        },
+        "mcp": {
+          "enabled": true,
+          "serverName": "project-manager",
+          "tools": [
+            "get_status",
+            "create_task"
+          ]
+        }
+      },
+      "features": {
+        "taskManagement": true,
+        "apiServer": true,
+        "database": true,
+        "mcp": true,
+        "testing": true
+      },
+      "scripts": {
+        "start": "node src/index.js",
+        "start:mcp": "node src/mcp-server.js",
+        "dev": "node --watch src/index.js",
+        "test": "node --test tests/"
+      },
+      "createdAt": "2025-08-23T05:03:13.301Z",
+      "active": true
+    },
+    "test-project": {
+      "name": "test-project",
+      "type": "node-api",
+      "description": "Node.js API 專案 專案",
+      "rootPath": "/Users/user/Workspace/task-manager-api/test-project",
+      "config": {
+        "api": {
+          "port": 3000,
+          "basePath": "/api",
+          "version": "1.0.0"
+        },
+        "database": {
+          "type": "sqlite",
+          "path": "./data/tasks.db"
+        },
+        "mcp": {
+          "enabled": true,
+          "serverName": "project-manager",
+          "tools": [
+            "get_status",
+            "create_task"
+          ]
+        }
+      },
+      "features": {
+        "taskManagement": true,
+        "apiServer": true,
+        "database": true,
+        "mcp": true,
+        "testing": true
+      },
+      "scripts": {
+        "start": "node src/index.js",
+        "start:mcp": "node src/mcp-server.js",
+        "dev": "node --watch src/index.js",
+        "test": "node --test tests/"
+      },
+      "createdAt": "2025-08-23T05:08:53.188Z",
+      "active": true
+    }
+  },
+  "templates": {
+    "node-api": {
+      "description": "Node.js API 專案模板",
+      "structure": {
+        "src/": "主要源代碼目錄",
+        "src/config/": "配置管理",
+        "src/core/": "核心功能",
+        "src/middleware/": "中介軟體",
+        "src/routes/": "API 路由",
+        "src/services/": "業務邏輯服務",
+        "tests/": "測試文件",
+        "scripts/": "輔助腳本",
+        "docs/": "文檔"
+      },
+      "requiredFiles": [
+        "package.json",
+        "src/index.js",
+        "src/config/index.js"
+      ],
+      "features": {
+        "mcp": {
+          "enabled": true,
+          "serverFile": "src/mcp-server.js"
+        },
+        "database": {
+          "supported": [
+            "sqlite",
+            "postgresql",
+            "mongodb"
+          ],
+          "default": "sqlite"
+        },
+        "testing": {
+          "framework": "node:test",
+          "coverage": true
+        }
+      }
+    },
+    "react-app": {
+      "description": "React 前端專案模板",
+      "structure": {
+        "src/": "React 組件和邏輯",
+        "public/": "靜態資源",
+        "tests/": "測試文件"
+      },
+      "requiredFiles": [
+        "package.json",
+        "src/index.js",
+        "src/App.js"
+      ],
+      "features": {
+        "mcp": {
+          "enabled": false,
+          "reason": "前端專案通常不需要 MCP server"
+        }
+      }
+    },
+    "python-api": {
+      "description": "Python API 專案模板",
+      "structure": {
+        "app/": "主要應用程式碼",
+        "tests/": "測試文件",
+        "requirements.txt": "依賴管理"
+      },
+      "requiredFiles": [
+        "requirements.txt",
+        "app/__init__.py"
+      ],
+      "features": {
+        "mcp": {
+          "enabled": true,
+          "serverFile": "mcp_server.py"
+        }
+      }
+    },
+    "go-api": {
+      "description": "Go API 專案模板",
+      "structure": {
+        "cmd/": "主要應用程式入口",
+        "internal/": "內部套件",
+        "pkg/": "公開套件",
+        "go.mod": "模組定義"
+      },
+      "requiredFiles": [
+        "go.mod",
+        "cmd/main.go"
+      ],
+      "features": {
+        "mcp": {
+          "enabled": true,
+          "serverFile": "cmd/mcp-server/main.go"
+        }
+      }
+    }
+  },
+  "globalSettings": {
+    "autoSetup": true,
+    "enableMCP": true,
+    "defaultDatabase": "sqlite",
+    "testFramework": "auto-detect",
+    "linting": {
+      "enabled": true,
+      "autoFix": true
+    },
+    "git": {
+      "autoCommit": false,
+      "commitPrefix": "[AUTO]"
+    },
+    "claude": {
+      "agentMode": true,
+      "autoDocumentation": true,
+      "intelligentWorkflow": true
+    }
+  },
+  "mcpIntegration": {
+    "enabled": true,
+    "servers": {
+      "task-manager": {
+        "command": "node",
+        "args": [
+          "src/mcp-server.js"
+        ],
+        "scope": "project"
+      },
+      "database": {
+        "command": "npx",
+        "args": [
+          "@modelcontextprotocol/server-sqlite",
+          "--db-path"
+        ],
+        "dynamicArgs": true,
+        "scope": "project"
+      }
+    },
+    "autoRegister": true
+  }
+}

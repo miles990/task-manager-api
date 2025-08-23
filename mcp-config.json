@@ -1,10 +1,16 @@
 {
   "mcpServers": {
+    "universal-project-manager": {
+      "command": "node",
+      "args": ["src/mcp-server-universal.js"],
+      "scope": "project",
+      "description": "Universal Project Manager MCP Server - Manage multiple projects in Claude Code"
+    },
     "task-manager": {
       "command": "node",
       "args": ["src/mcp-server.js"],
       "scope": "project",
-      "description": "Task Manager MCP Server - Direct task management in Claude Code"
+      "description": "Legacy Task Manager MCP Server (for backwards compatibility)"
     },
     "database": {
       "command": "npx",
